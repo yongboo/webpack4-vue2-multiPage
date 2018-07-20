@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>HOME</p>
+    <p class="detail">detail Page</p>
   </div>
 </template>
 <script>
@@ -9,5 +9,8 @@ export default {
 };
 </script>
 <style lang="scss">
-@import "./index.scss"
+.detail {
+  font-size: 24px;
+  color: burlywood
+}
 </style>
