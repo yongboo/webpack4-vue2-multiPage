@@ -1,13 +1,13 @@
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 // 清理 dist 文件夹
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 // 抽取css extract-text-webpack-plugin不再支持webpack4，官方出了mini-css-extract-plugin来处理css的抽取
 // const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const VueLoaderPlugin = require("vue-loader/lib/plugin")
+// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 // 引入多页面文件列表
-const config = require("./config");
+const config = require('./config');
 let HTMLPlugins = [];
 let Entries = {};
 
@@ -15,7 +15,7 @@ config.HTMLDirs.forEach(page => {
   const htmlPlugin = new HTMLWebpackPlugin({
     filename: `${page}.html`,
     template: path.resolve(__dirname, `../src/template/index.html`),
-    chunks: [page, 'vendor']
+    chunks: [page, 'vendor'],
   });
   HTMLPlugins.push(htmlPlugin);
   Entries[page] = path.resolve(__dirname, `../src/page/${page}/index.js`);
@@ -25,40 +25,40 @@ config.HTMLDirs.forEach(page => {
 module.exports = {
   entry: Entries,
   // 启用 sourceMap
-  devtool: "cheap-module-source-map",
+  devtool: 'cheap-module-source-map',
   output: {
-    filename: "js/[name].[chunkhash:8].js",
-    path: path.resolve(__dirname, "../dist")
+    filename: 'js/[name].[hash:8].js',
+    path: path.resolve(__dirname, '../dist'),
   },
   module: {
     rules: [
       {
         test: /\.vue$/,
-        use: "vue-loader"
+        use: 'vue-loader',
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: ["babel-loader"]
+        use: ['babel-loader'],
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
         use: {
-          loader: "file-loader",
+          loader: 'file-loader',
           options: {
             // 打包生成图片的名字
-            name: "[name].[ext]",
+            name: '[name].[ext]',
             // 图片的生成路径
-            outputPath: config.imgOutputPath
+            outputPath: config.imgOutputPath,
           }
         }
       },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
         use: {
-          loader: "file-loader",
+          loader: 'file-loader',
           options: {
-            outputPath: config.fontOutputPath
+            outputPath: config.fontOutputPath,
           }
         }
       }
@@ -66,22 +66,22 @@ module.exports = {
   },
   resolve: {
     alias: {
-      "@component": path.resolve(__dirname, "../src/component"),
-      "@style": path.resolve(__dirname, "../src/style")
+      '@component': path.resolve(__dirname, '../src/component'),
+      '@style': path.resolve(__dirname, '../src/style'),
     },
-    mainFields: ["jsnext:main", "browser", "main"]
+    mainFields: ['jsnext:main', 'browser', 'main'],
   },
 
   plugins: [
     // 自动清理 dist 文件夹
-    new CleanWebpackPlugin(["dist"], {
-      root: path.resolve(__dirname, ".."),
+    new CleanWebpackPlugin(['dist'], {
+      root: path.resolve(__dirname, '..'),
       verbose: true, //开启在控制台输出信息
       dry: false,
     }),
     new VueLoaderPlugin(),
     // 将 css 抽取到某个文件夹
     // 这里将所有的 css 提取到 dist 文件夹下的 css 文件夹中，并命名为 style.css
-    ...HTMLPlugins
+    ...HTMLPlugins,
   ]
-}
+};
