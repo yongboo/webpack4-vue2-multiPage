@@ -6,6 +6,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 // const ExtractTextPlugin = require('extract-text-webpack-plugin');
 // const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 // 引入多页面文件列表
 const config = require('./config');
 let HTMLPlugins = [];
@@ -18,7 +19,7 @@ config.HTMLDirs.forEach(page => {
     chunks: [page, 'vendor'],
   });
   HTMLPlugins.push(htmlPlugin);
-  Entries[page] = path.resolve(__dirname, `../src/page/${page}/index.js`);
+  Entries[page] = path.resolve(__dirname, `../src/pages/${page}/index.js`);
 })
 
 
@@ -66,8 +67,8 @@ module.exports = {
   },
   resolve: {
     alias: {
-      '@component': path.resolve(__dirname, '../src/component'),
-      '@style': path.resolve(__dirname, '../src/style'),
+      '@components': path.resolve(__dirname, '../src/components'),
+      '@styles': path.resolve(__dirname, '../src/styles'),
     },
     mainFields: ['jsnext:main', 'browser', 'main'],
   },
@@ -80,8 +81,14 @@ module.exports = {
       dry: false,
     }),
     new VueLoaderPlugin(),
+    new CopyWebpackPlugin([{
+      from: path.resolve(__dirname, '../public'),
+      to: path.resolve(__dirname, '../dist'),
+      ignore: ['*.html']
+    }]),
     // 将 css 抽取到某个文件夹
     // 这里将所有的 css 提取到 dist 文件夹下的 css 文件夹中，并命名为 style.css
     ...HTMLPlugins,
+    
   ]
 };
