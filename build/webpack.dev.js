@@ -27,7 +27,7 @@ module.exports = webpackMerge(webpackBase, {
           {
             loader: 'sass-resources-loader',
             options: {
-              resources: path.resolve(__dirname, '../src/style/lib/main.scss'),
+              resources: path.resolve(__dirname, '../src/styles/lib/main.scss'),
             }
           }
         ]
