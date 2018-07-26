@@ -34,9 +34,7 @@ module.exports = webpackMerge(webpackBase, {
       },
       {
         test: /\.(js|vue)$/,
-        // 强制先进行 ESLint 检查
-        enforce: 'pre',
-        // 不对 node_modules 和 lib 文件夹中的代码进行检查
+        enforce: 'pre', // 强制先进行 ESLint 检查
         exclude: /node_modules|lib/,
         loader: 'eslint-loader',
         options: {
@@ -54,8 +52,7 @@ module.exports = webpackMerge(webpackBase, {
       errors: true,
       warnings: true,
     },
-    open: true,
-    hot: true,
+    open: true
   },
   plugins: [
     //热更新
