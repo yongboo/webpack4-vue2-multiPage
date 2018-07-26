@@ -1,8 +1,17 @@
 module.exports = {
   HTMLDirs: [
-    'index',
-    'list',
-    'detail'
+    {
+      page: 'index',
+      title: '首页'
+    },
+    {
+      page: 'list',
+      title: '列表页'
+    },
+    {
+      page: 'detail',
+      title: '详情页'
+    }
   ],
   cssPublicPath: '../',
   imgOutputPath: 'img/',
