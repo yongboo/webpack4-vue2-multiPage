@@ -27,7 +27,7 @@ export default {
 <style lang="scss">
 .index {
   font-size: 24px;
-  color: red;
+  color: #222;
 }
 
 </style>

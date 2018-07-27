@@ -6,7 +6,7 @@
 ------
 最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的cooking（基于webpack2做的封装），目前已停止维护了。如果继续使用，一是项目目前比较庞大，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行vue1.0到vue2.0的框架升级，涉及到一系列构建插件（vue-style-loader等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的webpack4，同步搭配vue2和vuex3，一步到位。
 
-由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页的应用模板，官方提供了vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给大家做参考。难免有错漏的地方，欢迎大家批评指正~
+由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页的应用模板，官方提供了vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给需要的同学做参考。难免有错漏的地方，欢迎大家批评指正~
 
 
 
@@ -74,6 +74,7 @@ config.HTMLDirs.forEach(item => {
 });
 // ...
 
+
 ```
 config.js中多页的配置信息：
 ```js
@@ -134,6 +135,7 @@ loader 用于对模块的源代码进行转换，负责把某种文件格式的�
 ### 具体配置：
 - webpack.base.js(基础配置文件)
 ```js
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 // ...
 
 module: {
@@ -170,9 +172,14 @@ module: {
     }
   ]
 },
+  plugins: [
+    // ...
+    new VueLoaderPlugin()  
+  ]
 // ...
 ```
-babel-loader 还要配合配置 .babelrc 使用，这里配置”stage-2“以使用es7里的高级语法，实测如果不配置就无法处理 对象扩展符、async和await 等新语法特性。
+vue-loader要配合VueLoaderPlugin插件一起使用。
+babel-loader 要配合配置 .babelrc 使用，这里配置”stage-2“以使用es7里的高级语法，实测如果不配置就无法处理 对象扩展符、async和await 等新语法特性。
 
 .babelrc配置：
 ```js
@@ -203,7 +210,7 @@ module: {
       test: /\.css$/,
       exclude: /node_modules/,
       use: [
-        'vue-style-loader',
+        'vue-style-loader', // 处理vue文件中的css样式
         'css-loader',
         'postcss-loader',
       ]
@@ -211,13 +218,13 @@ module: {
     {
       test: /\.scss$/,
       exclude: /node_modules/,
-      use: [
+      use: [ // 这些loader会按照从右到左的顺序处理样式
         'vue-style-loader',
         'css-loader',
         'sass-loader',
         'postcss-loader',
-        {
-          loader: 'sass-resources-loader',
+        { 
+          loader: 'sass-resources-loader', // 将定义的sass变量、mix等统一样式打包到每个css文件中，避免在每个页面中手动手动引入
           options: {
             resources: path.resolve(__dirname, '../src/styles/lib/main.scss'),
           }
@@ -242,6 +249,7 @@ module: {
 ```
 - webpack.prod.js(生产配置文件)
 ```js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // ...
 module: {
   rules: [
@@ -272,25 +280,92 @@ module: {
   ]
 },
 // ...
+plugins: [
+  new MiniCssExtractPlugin({
+    filename: 'css/[name].[chunkhash:8].css' // css最终以单文件形式抽离到 dist/css目录下
+  })
+]
 ```  
+抽取css成单个文件 之前使用的extract-text-webpack-plugin不再支持webpack4，官方出了[mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)来处理css的抽取
+
+## plugins
+
+------
+在webpack打包流程中，模块代码转换的工作由 loader 来处理，除此之外的其他任何工作都可以交由 plugin 来完成。常用的有：
+- uglifyjs-webpack-plugin， 处理js代码压缩
+- mini-css-extract-plugin， 将css抽离成单文件
+- clean-webpack-plugin， 用于每次打build时清理 dist 文件夹
+- copy-webpack-plugin， copy文件
+- webpack.HotModuleReplacementPlugin， 热加载
+- webpack.DefinePlugin，定义环境变量
+
+### 具体配置：
+- webpack.base.js(基础配置文件)
+```js
+const path = require('path');
+const HTMLWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+// ...
+plugins: [
+  // 自动清理 dist 文件夹
+  new CleanWebpackPlugin(['dist'], {
+    root: path.resolve(__dirname, '..'),
+    verbose: true, //开启在控制台输出信息
+    dry: false,
+  }),
+  new VueLoaderPlugin(),
+  new CopyWebpackPlugin([{ // 拷贝favicon等公共文件到dist目录
+    from: path.resolve(__dirname, '../public'),
+    to: path.resolve(__dirname, '../dist'),
+    ignore: ['*.html']
+  }]),
+  ...HTMLPlugins,
+  
+]
+
+```
+
+- webpack.prod.js(生产配置文件)
+```js
+// 抽取css extract-text-webpack-plugin不再支持webpack4，官方出了mini-css-extract-plugin来处理css的抽取
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+plugins: [
+  new MiniCssExtractPlugin({
+    filename: 'css/[name].[chunkhash:8].css'
+  })
+]
+```
+
+## devServer
+
+------
+本地开发的时候我们需要在本地启动一个静态服务器，以方便开发调试，我们使用 webpack-dev-server  这个 webpack 官方提供的一个工具，基于当前的 webpack 构建配置快速启动一个静态服务。当 mode 为 development 时，会具备 hot reload 的功能，所以不需要再手动引入 webpack.HotModuleReplacementPlugin 插件了。
+
+一般把 webpack-dev-server 作为开发依赖安装，然后使用 npm scripts 来启动：
+```shell
+npm install webpack-dev-server -S
+```
+
+package 中的 scripts 配置：
+```json
+"scripts": {
+  "dev": "cross-env BUILD_MODE=dev webpack-dev-server ",
+},
+
+```
+> devServer的详细配置可参考官方文档：[dev-server](https://webpack.js.org/configuration/dev-server/)
 
 
+## splitChunks配置
 
-
-
-
-
-
-
-
-
-
-
-## splitChunks默认配置
+------
+webpack 4 移除 CommonsChunkPlugin，取而代之的是两个新的配置项（optimization.splitChunks 和 optimization.runtimeChunk）用于抽取公共js模块。
+通过optimization.runtimeChunk: true选项，webpack会添加一个只包含运行时(runtime)额外代码块到每一个入口。（注：这个需要看场景使用，会导致每个入口都加载多一份运行时代码）
 ```js
 module.exports = {
-  // webpack 4 移除 CommonsChunkPlugin，取而代之的是两个新的配置项（optimization.splitChunks 和 optimization.runtimeChunk）
-  // 通过optimization.runtimeChunk: true选项，webpack会添加一个只包含运行时(runtime)额外代码块到每一个入口。（译注：这个需要看场景使用，会导致每个入口都加载多//一份运行时代码）
+  // ...
   optimization: {
     splitChunks: {
       chunks: 'async', // 控制webpack选择哪些代码块用于分割（其他类型代码块按默认方式打包）。有3个可选的值：initial、async和all。
@@ -316,6 +391,87 @@ module.exports = {
   }
 };
 ```
+> 关于 SplitChunksPlugin 的详细配置可参考官方文档: [SplitChunksPlugin](https://webpack.js.org/plugins/split-chunks-plugin/)
+
+## Vue && Vuex
+
+------
+### Vue:
+我们知道vue单页应用只有一个入口，默认入口文件是main.js，在该文件中处理 vue模板、Vuex 最终构造Vue对象。而多页应用有多个入口，相当于在每个入口里都要处理一遍单页里main.js要处理的事情。
+一般的配置类似这样：
+```js
+import Vue from 'vue';
+import Tpl from './index.vue'; // Vue模板
+import '@styles/lib/main.scss';
+import store from '../../store'; // Vuex
+
+new Vue({
+  store,
+  render: h => h(Tpl),
+}).$mount('#app');
+```
+### Vuex:
+为了避免所有状态都集中到store对象中，导致文件臃肿，不易维护，这里将store 分割成多个模块（module）。每个模块拥有自己的 state、mutation、action。同时将getter抽离成单独文件。
+文件结构如下：
+```cpp
+|- store
+|   |-modules
+|   |   |-app.js // 单个module
+|   |   |-user.js // // 单个module
+|   |-getters.js    
+|   |-index.js // 在这里组织各个module 
+```
+单个module的设置如下：
+```js
+const app = {
+  state: { // state
+    count: 0
+  },
+  mutations: { // mutations
+    ADD_COUNT: (state, payload) => {
+      state.count += payload.amount;
+    }
+  },
+  actions: { // actions
+    addCount: ({ commit }, payload) => {
+      commit('ADD_COUNT', {
+        amount: payload.num
+      });
+    }
+  }
+};
+
+export default app;
+```
+
+最终在index.js中组装各个module：
+```js
+import Vue from 'vue';
+import Vuex from 'vuex';
+import app from './modules/app';
+import user from './modules/user';
+import getters from './getters';
+
+Vue.use(Vuex);
+
+const store = new Vuex.Store({
+  modules: {
+    app,
+    user
+  },
+  getters
+});
+
+export default store;
+```
+
+
+
+
+## 总结
+
+-----
+总算写完了，中间填了不少坑，但一路走下来还是有不少收获的，后面有时间会继续完善。项目源码的github地址在这里：[webpack4-vue2-multiPage](https://github.com/yongboo/webpack4-vue2-multiPage)，有需要的直接拿去，如果对你有一些帮助，也请不要吝啬你的star~~
 
 
 ## 参考资料
