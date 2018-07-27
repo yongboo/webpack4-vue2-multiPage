@@ -4,16 +4,16 @@
 ## 背景
 
 ------
-最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的cooking（基于webpack2做的封装），目前已停止维护了。如果继续使用，一是项目目前比较庞大，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行vue1.0到vue2.0的框架升级，涉及到一系列构建插件（vue-style-loader等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的webpack4，同步搭配vue2和vuex3，一步到位。
+最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的cooking（基于 webpack2 做的封装），目前已停止维护了。如果继续使用，一是项目目前比较庞大，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行 vue1.0 到 ue2.0 的框架升级，涉及到一系列构建插件（ vue-style-loader 等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的 webpack4，同步搭配 vue2 和 vuex3，一步到位。
 
-由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页的应用模板，官方提供了vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给需要的同学做参考。难免有错漏的地方，欢迎大家批评指正~
+由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页的应用模板，官方提供了 vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给需要的同学做参考。难免有错漏的地方，欢迎大家批评指正~
 
 
 
 ## webpack的核心概念
 
 -------
-受Parcel等零配置构建工具的启发，webpack4也在向无配置方向努力，做了大量优化，虽然支持零配置的方式，但如果想对模块进行细粒度的控制，仍然需要手动对一些配置项进行设定。但和webpack2相比已经明显简化，上手容易了很多。这里先了解webpack4的几个核心配置项，后面会详细展开：
+受 Parcel 等零配置构建工具的启发，webpack4 也在向无配置方向努力，做了大量优化，虽然支持零配置的方式，但如果想对模块进行细粒度的控制，仍然需要手动对一些配置项进行设定。但和 webpack2 相比已经明显简化，上手容易了很多。这里先了解 webpack4 的几个核心配置项，后面会详细展开：
 
 - mode
 - entry
@@ -22,7 +22,7 @@
 - plugins
 - devServer
 
-接下来我就按照上面的顺序，尽量详细的列出基于webpack4搭建vue2、vuex多页应用的全流程
+接下来我就按照上面的顺序，尽量详细的列出基于 webpack4 搭建 vue2、vuex 多页应用的全流程
 
 ## mode
 
@@ -53,10 +53,10 @@ module.exports = {
 
 ------
 对比多页应用和单页应用（SPA）,最大的不同点，就在于入口的不同
-- 多页：最终打包生成多个入口（html页面），一般每个入口文件除了要引入公共的静态文件（js/css）还要另外引入页面特有的静态资源
-- 单页：只有一个入口(index.html)，页面中需要引入打包后的所有静态文件，所有的页面内容全由 JavaScript 控制
+- 多页：最终打包生成多个入口（ html 页面），一般每个入口文件除了要引入公共的静态文件（ js/css ）还要另外引入页面特有的静态资源
+- 单页：只有一个入口( index.html )，页面中需要引入打包后的所有静态文件，所有的页面内容全由 JavaScript 控制
 
-需要注意的是，上面说的入口指的都是最终打包到dist目录下的html文件，而我们在这里配置的entry其实是需要被html引入的js模块，这些js模块、连同抽离的公共js模块最终还需要利用html-webpack-plugin这个插件组合到html文件中：
+需要注意的是，上面说的入口指的都是最终打包到dist目录下的html文件，而我们在这里配置的 entry 其实是需要被 html 引入的js模块，这些js模块、连同抽离的公共js模块最终还需要利用  html-webpack-plugin 这个插件组合到html文件中：
 ```js
 const config = require('./config'); // 多页面的配置项
 let HTMLPlugins = [];
@@ -130,7 +130,7 @@ module.exports = {
 ## loader
 
 ------
-loader 用于对模块的源代码进行转换，负责把某种文件格式的内容转换成 webpack 可以支持打包的模块，例如将sass预处理转换成css模块；将TypeScript转换成JavaScript；或将内联图像转换为 data URL等
+loader 用于对模块的源代码进行转换，负责把某种文件格式的内容转换成 webpack 可以支持打包的模块，例如将sass预处理转换成 css 模块；将 TypeScript 转换成 JavaScript；或将内联图像转换为 data URL等
 
 ### 具体配置：
 - webpack.base.js(基础配置文件)
@@ -178,7 +178,7 @@ module: {
   ]
 // ...
 ```
-vue-loader要配合VueLoaderPlugin插件一起使用。
+vue-loader要配合 VueLoaderPlugin 插件一起使用。
 babel-loader 要配合配置 .babelrc 使用，这里配置”stage-2“以使用es7里的高级语法，实测如果不配置就无法处理 对象扩展符、async和await 等新语法特性。
 
 .babelrc配置：
@@ -362,7 +362,7 @@ package 中的 scripts 配置：
 
 ------
 webpack 4 移除 CommonsChunkPlugin，取而代之的是两个新的配置项（optimization.splitChunks 和 optimization.runtimeChunk）用于抽取公共js模块。
-通过optimization.runtimeChunk: true选项，webpack会添加一个只包含运行时(runtime)额外代码块到每一个入口。（注：这个需要看场景使用，会导致每个入口都加载多一份运行时代码）
+通过 optimization.runtimeChunk: true 选项，webpack 会添加一个只包含运行时(runtime)额外代码块到每一个入口。（注：这个需要看场景使用，会导致每个入口都加载多一份运行时代码）
 ```js
 module.exports = {
   // ...
@@ -397,7 +397,7 @@ module.exports = {
 
 ------
 ### Vue:
-我们知道vue单页应用只有一个入口，默认入口文件是main.js，在该文件中处理 vue模板、Vuex 最终构造Vue对象。而多页应用有多个入口，相当于在每个入口里都要处理一遍单页里main.js要处理的事情。
+我们知道vue单页应用只有一个入口，默认入口文件是 main.js，在该文件中处理 vue模板、Vuex 最终构造Vue对象。而多页应用有多个入口，相当于在每个入口里都要处理一遍单页里 main.js 要处理的事情。
 一般的配置类似这样：
 ```js
 import Vue from 'vue';
@@ -411,7 +411,7 @@ new Vue({
 }).$mount('#app');
 ```
 ### Vuex:
-为了避免所有状态都集中到store对象中，导致文件臃肿，不易维护，这里将store 分割成多个模块（module）。每个模块拥有自己的 state、mutation、action。同时将getter抽离成单独文件。
+为了避免所有状态都集中到 store 对象中，导致文件臃肿，不易维护，这里将store 分割成多个模块（module）。每个模块拥有自己的 state、mutation、action。同时将getter抽离成单独文件。
 文件结构如下：
 ```cpp
 |- store
