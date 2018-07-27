@@ -2,7 +2,7 @@ const path = require('path');
 const webpackBase = require('./webpack.base');
 const webpackMerge = require('webpack-merge');
 const config = require('./config');
-const webpack = require('webpack');
+
 module.exports = webpackMerge(webpackBase, {
   mode: 'development',
   module: {
@@ -52,10 +52,6 @@ module.exports = webpackMerge(webpackBase, {
       errors: true,
       warnings: true,
     },
-    open: true
-  },
-  plugins: [
-    //热更新
-    new webpack.HotModuleReplacementPlugin(),
-  ],
+    open: true // 服务启动后 打开浏览器
+  }
 });

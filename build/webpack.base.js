@@ -2,12 +2,9 @@ const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 // 清理 dist 文件夹
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-// 抽取css extract-text-webpack-plugin不再支持webpack4，官方出了mini-css-extract-plugin来处理css的抽取
-// const ExtractTextPlugin = require('extract-text-webpack-plugin');
-// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-
 const config = require('./config'); // 多页面的配置项
 let HTMLPlugins = [];
 let Entries = {};
@@ -70,7 +67,6 @@ module.exports = {
       '@styles': path.resolve(__dirname, '../src/styles'),
     }
   },
-
   plugins: [
     // 自动清理 dist 文件夹
     new CleanWebpackPlugin(['dist'], {
@@ -85,6 +81,5 @@ module.exports = {
       ignore: ['*.html']
     }]),
     ...HTMLPlugins,
-    
   ]
 };
