@@ -11,6 +11,6 @@ export default {
 <style lang="scss">
 .list {
   font-size: 24px;
-  color: brown;
+  color: $titleColor;
 }
 </style>

@@ -1,19 +1,18 @@
-# webpack4-vue2-multiPage
-基于webpack4搭建vue2、vuex多页应用
+# 基于webpack4搭建vue2、vuex多页应用
 
 ## 背景
 
 ------
-最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的cooking（基于 webpack2 做的封装），目前已停止维护了。如果继续使用，一是项目目前比较庞大，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行 vue1.0 到 ue2.0 的框架升级，涉及到一系列构建插件（ vue-style-loader 等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的 webpack4，同步搭配 vue2 和 vuex3，一步到位。
+最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的 cooking（基于 webpack 做的封装，目前已停止维护了。）如果继续使用，一是项目目前已经比较复杂，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行 vue1.0 到 ue2.0 的框架升级，涉及到一系列依赖包（ vue-style-loader 等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的 webpack4，同步搭配 vue2 和 vuex3，一步到位。
 
-由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页的应用模板，官方提供了 vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给需要的同学做参考。难免有错漏的地方，欢迎大家批评指正~
+由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页应用模板，官方提供了 vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给有需要的同学参考。文中若有错漏的地方，还请大家批评指正~
 
 
 
 ## webpack的核心概念
 
 -------
-受 Parcel 等零配置构建工具的启发，webpack4 也在向无配置方向努力，做了大量优化，虽然支持零配置的方式，但如果想对模块进行细粒度的控制，仍然需要手动对一些配置项进行设定。但和 webpack2 相比已经明显简化，上手容易了很多。这里先了解 webpack4 的几个核心配置项，后面会详细展开：
+受 Parcel 等零配置构建工具的启发，webpack4 也在向无配置方向努力，做了大量优化，虽然支持零配置的方式，但如果想对模块进行细粒度的控制，仍然需要手动对一些配置项进行设定。但和 webpack 之前版本相比已经明显简化，上手容易了很多。这里先了解 webpack4 的几个核心配置项，后面会逐一展开：
 
 - mode
 - entry
@@ -29,15 +28,15 @@
 ------
 webpack4新增，指定打包模式，可选的值有：
 1. development，开发模式
-   - 会将process.env.NODE_ENV设置成development
-   - 启用NamedChunksPlugin、NamedModulesPlugin插件
+   - 会将 process.env.NODE_ENV 设置成 development
+   - 启用 NamedChunksPlugin、NamedModulesPlugin 插件
 2. production，生产模式
-   - 会将process.env.NODE_ENV设置成production
+   - 会将 process.env.NODE_ENV 设置成 production
    - 会启用最大化的优化（模块的压缩、串联等）
 3. none，这种模式不会进行优化处理
 
 ### mode设置的两种方式:
-- package.json中通过设置shell命令参数形式定义
+- package.json 中通过shell命令参数形式设置
 ```js
 webpack --mode=production
 ```
@@ -96,7 +95,7 @@ module.exports = {
   // ...
 };
 ```
-最后在配置项中引入相关配置：
+最后再引入相关配置：
 ```js
 module.exports = {
   entry: Entries,
@@ -179,7 +178,7 @@ module: {
 // ...
 ```
 vue-loader要配合 VueLoaderPlugin 插件一起使用。
-babel-loader 要配合配置 .babelrc 使用，这里配置”stage-2“以使用es7里的高级语法，实测如果不配置就无法处理 对象扩展符、async和await 等新语法特性。
+babel-loader 要配合 .babelrc 使用。这里配置“stage-2”以使用es7里的高级语法，实测如果不配置就无法处理 对象扩展符、async和await 等新语法特性。
 
 .babelrc配置：
 ```js
@@ -286,15 +285,15 @@ plugins: [
   })
 ]
 ```  
-抽取css成单个文件 之前使用的extract-text-webpack-plugin不再支持webpack4，官方出了[mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)来处理css的抽取
+抽取 css 成单个文件 之前使用的 extract-text-webpack-plugin 不再支持webpack4，官方出了 [mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin) 来处理css的抽取
 
 ## plugins
 
 ------
-在webpack打包流程中，模块代码转换的工作由 loader 来处理，除此之外的其他任何工作都可以交由 plugin 来完成。常用的有：
+在webpack打包流程中，模块代码转换的工作由 loader 来处理，除此之外的其他工作都可以交由 plugin 来完成。常用的有：
 - uglifyjs-webpack-plugin， 处理js代码压缩
 - mini-css-extract-plugin， 将css抽离成单文件
-- clean-webpack-plugin， 用于每次打build时清理 dist 文件夹
+- clean-webpack-plugin， 用于每次 build 时清理 dist 文件夹
 - copy-webpack-plugin， copy文件
 - webpack.HotModuleReplacementPlugin， 热加载
 - webpack.DefinePlugin，定义环境变量
@@ -341,7 +340,7 @@ plugins: [
 ## devServer
 
 ------
-本地开发的时候我们需要在本地启动一个静态服务器，以方便开发调试，我们使用 webpack-dev-server  这个 webpack 官方提供的一个工具，基于当前的 webpack 构建配置快速启动一个静态服务。当 mode 为 development 时，会具备 hot reload 的功能，所以不需要再手动引入 webpack.HotModuleReplacementPlugin 插件了。
+日常开发的时候我们需要在本地启动一个静态服务器，以方便开发调试，我们使用 webpack-dev-server  这个 webpack 官方提供的一个工具，基于当前的 webpack 构建配置快速启动一个静态服务。当 mode 为 development 时，会具备 hot reload 的功能，所以不需要再手动引入 webpack.HotModuleReplacementPlugin 插件了。
 
 一般把 webpack-dev-server 作为开发依赖安装，然后使用 npm scripts 来启动：
 ```shell
@@ -361,8 +360,10 @@ package 中的 scripts 配置：
 ## splitChunks配置
 
 ------
-webpack 4 移除 CommonsChunkPlugin，取而代之的是两个新的配置项（optimization.splitChunks 和 optimization.runtimeChunk）用于抽取公共js模块。
-通过 optimization.runtimeChunk: true 选项，webpack 会添加一个只包含运行时(runtime)额外代码块到每一个入口。（注：这个需要看场景使用，会导致每个入口都加载多一份运行时代码）
+webpack 4 移除了 CommonsChunkPlugin，取而代之的是两个新的配置项（ optimization.splitChunks 和 optimization.runtimeChunk ）用于抽取公共js模块。
+通过 optimization.runtimeChunk: true 选项，webpack 会添加一个只包含运行时(runtime)额外代码块到每一个入口。（注：这个需要看场景使用，会导致每个入口都加载多一份运行时代码）。
+
+### splitChunks默认配置介绍：
 ```js
 module.exports = {
   // ...
@@ -402,7 +403,6 @@ module.exports = {
 ```js
 import Vue from 'vue';
 import Tpl from './index.vue'; // Vue模板
-import '@styles/lib/main.scss';
 import store from '../../store'; // Vuex
 
 new Vue({
@@ -471,7 +471,7 @@ export default store;
 ## 总结
 
 -----
-总算写完了，中间填了不少坑，但一路走下来还是有不少收获的，后面有时间会继续完善。项目源码的github地址在这里：[webpack4-vue2-multiPage](https://github.com/yongboo/webpack4-vue2-multiPage)，有需要的直接拿去，如果对你有一些帮助，也请不要吝啬你的star~~
+总算写完了，中间填了不少坑，但一路走下来还是有不少收获的，后面有时间会继续完善。项目源码的github地址在这里：[webpack4-vue2-multiPage](https://github.com/yongboo/webpack4-vue2-multiPage)，有需要的直接拿去，如果对你有一些帮助，也请给个star~~
 
 
 ## 参考资料

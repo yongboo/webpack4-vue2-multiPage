@@ -11,6 +11,6 @@ export default {
 <style lang="scss">
 .detail {
   font-size: 24px;
-  color: burlywood
+  color: $titleColor;
 }
 </style>
