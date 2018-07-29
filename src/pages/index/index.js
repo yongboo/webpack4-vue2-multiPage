@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Tpl from './index.vue';
-import '@styles/lib/main.scss';
 import store from '../../store';
 
 new Vue({
