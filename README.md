@@ -2,7 +2,6 @@
 
 ## 背景
 
-------
 最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的 cooking（基于 webpack 做的封装，目前已停止维护了。）如果继续使用，一是项目目前已经比较复杂，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行 vue1.0 到 ue2.0 的框架升级，涉及到一系列依赖包（ vue-style-loader 等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的 webpack4，同步搭配 vue2 和 vuex3，一步到位。
 
 由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页应用模板，官方提供了 vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给有需要的同学参考。文中若有错漏的地方，还请大家批评指正~
@@ -11,7 +10,6 @@
 
 ## webpack的核心概念
 
--------
 受 Parcel 等零配置构建工具的启发，webpack4 也在向无配置方向努力，做了大量优化，虽然支持零配置的方式，但如果想对模块进行细粒度的控制，仍然需要手动对一些配置项进行设定。但和 webpack 之前版本相比已经明显简化，上手容易了很多。这里先了解 webpack4 的几个核心配置项，后面会逐一展开：
 
 - mode
@@ -25,7 +23,6 @@
 
 ## mode
 
-------
 webpack4新增，指定打包模式，可选的值有：
 1. development，开发模式
    - 会将 process.env.NODE_ENV 设置成 development
@@ -50,7 +47,6 @@ module.exports = {
 
 ## entry
 
-------
 对比多页应用和单页应用（SPA）,最大的不同点，就在于入口的不同
 - 多页：最终打包生成多个入口（ html 页面），一般每个入口文件除了要引入公共的静态文件（ js/css ）还要另外引入页面特有的静态资源
 - 单页：只有一个入口( index.html )，页面中需要引入打包后的所有静态文件，所有的页面内容全由 JavaScript 控制
@@ -112,7 +108,6 @@ module.exports = {
 
 ## output
 
-------
 配置出口的文件名和路径：
 ```js
 module.exports = {
@@ -128,7 +123,6 @@ module.exports = {
 
 ## loader
 
-------
 loader 用于对模块的源代码进行转换，负责把某种文件格式的内容转换成 webpack 可以支持打包的模块，例如将sass预处理转换成 css 模块；将 TypeScript 转换成 JavaScript；或将内联图像转换为 data URL等
 
 ### 具体配置：
@@ -217,7 +211,7 @@ module: {
     {
       test: /\.scss$/,
       exclude: /node_modules/,
-      use: [ // 这些loader会按照从右到左的顺序处理样式
+      use: [ // 这些loader会按照从右到左的顺序处理样式
         'vue-style-loader',
         'css-loader',
         'sass-loader',
@@ -289,7 +283,6 @@ plugins: [
 
 ## plugins
 
-------
 在webpack打包流程中，模块代码转换的工作由 loader 来处理，除此之外的其他工作都可以交由 plugin 来完成。常用的有：
 - uglifyjs-webpack-plugin， 处理js代码压缩
 - mini-css-extract-plugin， 将css抽离成单文件
@@ -339,7 +332,6 @@ plugins: [
 
 ## devServer
 
-------
 日常开发的时候我们需要在本地启动一个静态服务器，以方便开发调试，我们使用 webpack-dev-server  这个 webpack 官方提供的一个工具，基于当前的 webpack 构建配置快速启动一个静态服务。当 mode 为 development 时，会具备 hot reload 的功能，所以不需要再手动引入 webpack.HotModuleReplacementPlugin 插件了。
 
 一般把 webpack-dev-server 作为开发依赖安装，然后使用 npm scripts 来启动：
@@ -359,7 +351,6 @@ package 中的 scripts 配置：
 
 ## splitChunks配置
 
-------
 webpack 4 移除了 CommonsChunkPlugin，取而代之的是两个新的配置项（ optimization.splitChunks 和 optimization.runtimeChunk ）用于抽取公共js模块。
 通过 optimization.runtimeChunk: true 选项，webpack 会添加一个只包含运行时(runtime)额外代码块到每一个入口。（注：这个需要看场景使用，会导致每个入口都加载多一份运行时代码）。
 
@@ -396,7 +387,6 @@ module.exports = {
 
 ## Vue && Vuex
 
-------
 ### Vue:
 我们知道vue单页应用只有一个入口，默认入口文件是 main.js，在该文件中处理 vue模板、Vuex 最终构造Vue对象。而多页应用有多个入口，相当于在每个入口里都要处理一遍单页里 main.js 要处理的事情。
 一般的配置类似这样：
@@ -465,13 +455,9 @@ const store = new Vuex.Store({
 export default store;
 ```
 
-
-
-
 ## 总结
 
------
-总算写完了，中间填了不少坑，但一路走下来还是有不少收获的，后面有时间会继续完善。项目源码的github地址在这里：[webpack4-vue2-multiPage](https://github.com/yongboo/webpack4-vue2-multiPage)，有需要的直接拿去，如果对你有一些帮助，也请给个star~~
+总算写完了，中间填了不少坑，但一路走下来还是有不少收获的，后面有时间会继续完善。项目源码的github地址在这里：[webpack4-vue2-multiPage](https://github.com/yongboo/webpack4-vue2-multiPage)，有需要的直接拿去，如果对你有一些帮助，也请给个star哈~~
 
 
 ## 参考资料
