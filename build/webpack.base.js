@@ -44,7 +44,7 @@ module.exports = {
           loader: 'file-loader', // 解决打包css文件中图片路径无法解析的问题
           options: {
             // 打包生成图片的名字
-            name: '[name].[ext]',
+            name: '[name].[hash:8].[ext]',
             // 图片的生成路径
             outputPath: config.imgOutputPath,
           }
