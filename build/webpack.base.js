@@ -1,7 +1,5 @@
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
-// 清理 dist 文件夹
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -24,6 +22,7 @@ config.HTMLDirs.forEach(item => {
 module.exports = {
   entry: Entries,
   output: {
+    publicPath: '/',
     filename: 'js/[name].[hash:8].js',
     path: path.resolve(__dirname, '../dist'),
   },
@@ -68,12 +67,6 @@ module.exports = {
     }
   },
   plugins: [
-    // 自动清理 dist 文件夹
-    new CleanWebpackPlugin(['dist'], {
-      root: path.resolve(__dirname, '..'),
-      verbose: true, //开启在控制台输出信息
-      dry: false,
-    }),
     new VueLoaderPlugin(),
     new CopyWebpackPlugin([{
       from: path.resolve(__dirname, '../public'),

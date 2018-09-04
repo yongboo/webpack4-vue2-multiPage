@@ -3,6 +3,8 @@ const path = require('path');
 const webpackBase = require('./webpack.base');
 // 引入 webpack-merge 插件
 const webpackMerge = require('webpack-merge');
+// 清理 dist 文件夹
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 // js压缩、优化插件
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 // 抽取css extract-text-webpack-plugin不再支持webpack4，官方出了mini-css-extract-plugin来处理css的抽取
@@ -68,6 +70,12 @@ module.exports = webpackMerge(webpackBase, {
     ]
   },
   plugins: [
+    // 自动清理 dist 文件夹
+    new CleanWebpackPlugin(['dist'], {
+      root: path.resolve(__dirname, '..'),
+      verbose: true, //开启在控制台输出信息
+      dry: false,
+    }),
     new MiniCssExtractPlugin({
       filename: 'css/[name].[chunkhash:8].css'
     })
