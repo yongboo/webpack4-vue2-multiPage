@@ -11,6 +11,8 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
+const config = require('./config'); // 多页面的配置项
+const ASSET_PATH = '//abc.com/static/'; // 静态资地址
 // 合并配置文件
 module.exports = webpackMerge(webpackBase, {
   mode: 'production',
@@ -40,6 +42,29 @@ module.exports = webpackMerge(webpackBase, {
           }
         ]
       },
+      {
+        test: /\.(png|svg|jpg|gif)$/, // 处理图片
+        use: {
+          loader: 'file-loader', // 解决打包css文件中图片路径无法解析的问题
+          options: {
+            // 打包生成图片的名字
+            name: '[name].[ext]',
+            // 图片的生成路径
+            outputPath: config.imgOutputPath,
+            publicPath: ASSET_PATH
+          }
+        }
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/, // 处理字体
+        use: {
+          loader: 'file-loader',
+          options: {
+            outputPath: config.fontOutputPath,
+            publicPath: ASSET_PATH
+          }
+        }
+      }
     ]
   },
   optimization: {
