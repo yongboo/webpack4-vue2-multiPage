@@ -1,6 +1,6 @@
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
-
+const webpack = require('webpack')
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const config = require('./config'); // 多页面的配置项
@@ -18,11 +18,14 @@ config.HTMLDirs.forEach(item => {
   Entries[item.page] = path.resolve(__dirname, `../src/pages/${item.page}/index.js`); // 根据配置设置入口js文件
 });
 
+const env = process.env.BUILD_MODE.trim();
+let ASSET_PATH = '/';
+if (env === 'prod') ASSET_PATH = '//abc.com/static/'; // 静态资地址
 
 module.exports = {
   entry: Entries,
   output: {
-    publicPath: '/',
+    publicPath: ASSET_PATH,
     filename: 'js/[name].[hash:8].js',
     path: path.resolve(__dirname, '../dist'),
   },
@@ -36,27 +39,6 @@ module.exports = {
         test: /\.js$/, //处理es6语法
         exclude: /node_modules/,
         use: ['babel-loader'],
-      },
-      {
-        test: /\.(png|svg|jpg|gif)$/, // 处理图片
-        use: {
-          loader: 'file-loader', // 解决打包css文件中图片路径无法解析的问题
-          options: {
-            // 打包生成图片的名字
-            name: '[name].[ext]',
-            // 图片的生成路径
-            outputPath: config.imgOutputPath,
-          }
-        }
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf|otf)$/, // 处理字体
-        use: {
-          loader: 'file-loader',
-          options: {
-            outputPath: config.fontOutputPath,
-          }
-        }
       }
     ]
   },
@@ -64,15 +46,25 @@ module.exports = {
     alias: {
       '@components': path.resolve(__dirname, '../src/components'),
       '@styles': path.resolve(__dirname, '../src/styles'),
-    }
+    },
+    extensions:['*','.css','.js','.vue']
   },
   plugins: [
     new VueLoaderPlugin(),
-    new CopyWebpackPlugin([{
-      from: path.resolve(__dirname, '../public'),
-      to: path.resolve(__dirname, '../dist'),
-      ignore: ['*.html']
-    }]),
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, '../public'),
+        to: path.resolve(__dirname, '../dist'),
+        ignore: ['*.html']
+      },
+      {
+        from: path.resolve(__dirname, '../src/scripts/lib'),
+        to: path.resolve(__dirname, '../dist')
+      }
+    ]),
     ...HTMLPlugins,
+    new webpack.DefinePlugin({
+      'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH)
+    })
   ]
 };

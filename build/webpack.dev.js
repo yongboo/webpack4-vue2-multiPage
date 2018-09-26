@@ -43,6 +43,27 @@ module.exports = webpackMerge(webpackBase, {
           // 启用警告信息
           emitWarning: true,
         }
+      },
+      {
+        test: /\.(png|svg|jpg|gif)$/, // 处理图片
+        use: {
+          loader: 'file-loader', // 解决打包css文件中图片路径无法解析的问题
+          options: {
+            // 打包生成图片的名字
+            name: '[name].[ext]',
+            // 图片的生成路径
+            outputPath: config.imgOutputPath,
+          }
+        }
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/, // 处理字体
+        use: {
+          loader: 'file-loader',
+          options: {
+            outputPath: config.fontOutputPath,
+          }
+        }
       }
     ]
   },
