@@ -6,7 +6,9 @@ module.exports = {
     },
     {
       page: 'list',
-      title: '列表页'
+      title: '列表页',
+      dir: 'content' // 支持设置多级目录
+
     },
     {
       page: 'detail',

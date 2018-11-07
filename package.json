@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env BUILD_MODE=dev webpack-dev-server ",
     "build": "cross-env BUILD_MODE=prod webpack ",
-    "serve": "http-server ./dist -p 8089 -o"
+    "server": "http-server ./dist -p 8089 -o"
   },
   "keywords": [],
   "author": "",

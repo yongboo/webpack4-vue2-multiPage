@@ -2,9 +2,9 @@
 
 ## 背景
 
-最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的 cooking（基于 webpack 做的封装，目前已停止维护了。）如果继续使用，一是项目目前已经比较复杂，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行 vue1.0 到 ue2.0 的框架升级，涉及到一系列依赖包（ vue-style-loader 等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到最新的 webpack4，同步搭配 vue2 和 vuex3，一步到位。
+最近在对公司的H5项目做重构，涉及到构建优化，由于一些历史原因，项目原先使用的打包工具是饿了么团队开发的 cooking（基于 webpack 做的封装，目前已停止维护了。）如果继续使用，一是项目目前已经比较复杂，现在的构建方式每次打包耗时较长；二是使用一个已经停止维护的工具本身也有风险；另外因为本次重构还要进行 vue1.0 到 Vue2.0 的框架升级，涉及到一系列依赖包（ vue-style-loader 等）的版本兼容问题。折腾了一天也没啥头绪，索性将构建工具直接升级到 webpack4，同步搭配 vue2 和 vuex3，一步到位。
 
-由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的还是传统多页面架构，网上基于vue的单页应用模板，官方提供了 vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给有需要的同学参考。文中若有错漏的地方，还请大家批评指正~
+由于公司业务需要（SEO、页面主要以投放为主），我们项目采用的是多页面架构，网上基于vue的单页应用模板，官方提供了 vue-cli，第三方的也不少，多页模板可参考的却不多。我前后花了两周左右时间，参考了一些博客资料和文档，整理了这套基于webpack4 + vue2 + vuex3的多页应用模板，记录下来方便自己以后查看，也分享给有需要的同学参考。文中若有错漏的地方，还请大家批评指正~
 
 
 
@@ -58,9 +58,11 @@ let HTMLPlugins = [];
 let Entries = {};
 
 config.HTMLDirs.forEach(item => {
+  let filename = `${item.page}.html`;
+  if (item.dir) filename = `${item.dir}/${item.page}.html`;
   const htmlPlugin = new HTMLWebpackPlugin({
     title: item.title, // 生成的html页面的标题
-    filename: `${item.page}.html`, // 生成到dist目录下的html文件名称，支持多级目录（eg: `${item.page}/index.html`）
+    filename: filename, // 生成到dist目录下的html文件名称，支持多级目录（eg: `${item.page}/index.html`）
     template: path.resolve(__dirname, `../src/template/index.html`), // 模板文件，不同入口可以根据需要设置不同模板
     chunks: [item.page, 'vendor'], // html文件中需要要引入的js模块，这里的 vendor 是webpack默认配置下抽离的公共模块的名称
   });
@@ -81,7 +83,9 @@ module.exports = {
     },
     {
       page: 'list',
-      title: '列表页'
+      title: '列表页',
+      dir: 'content' // 支持设置多级目录
+
     },
     {
       page: 'detail',
@@ -97,7 +101,7 @@ module.exports = {
   entry: Entries,
   // ...
    plugins: [
-     ...HTMLPlugins
+     ...HTMLPlugins // 利用 HTMLWebpackPlugin 插件合成最终页面
    ]
   // ... 
 }
@@ -110,9 +114,13 @@ module.exports = {
 
 配置出口的文件名和路径：
 ```js
+const env = process.env.BUILD_MODE.trim();
+let ASSET_PATH = '/'; // dev 环境
+if (env === 'prod') ASSET_PATH = '//abc.com/static/'; // build 时设置成实际使用的静态服务地址
 module.exports = {
   entry: Entries,
   output: {
+    publicPath: ASSET_PATH,
     filename: 'js/[name].[hash:8].js',
     path: path.resolve(__dirname, '../dist'),
   },
@@ -243,6 +251,7 @@ module: {
 - webpack.prod.js(生产配置文件)
 ```js
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ASSET_PATH = '//abc.com/static/'; // 线上静态资地址
 // ...
 module: {
   rules: [
@@ -270,6 +279,29 @@ module: {
         }
       ]
     },
+    {
+        test: /\.(png|svg|jpg|gif)$/, // 处理图片
+        use: {
+          loader: 'file-loader', // 解决打包css文件中图片路径无法解析的问题
+          options: {
+            // 打包生成图片的名字
+            name: '[name].[hash:8].[ext]',
+            // 图片的生成路径
+            outputPath: config.imgOutputPath,
+            publicPath: ASSET_PATH
+          }
+        }
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/, // 处理字体
+        use: {
+          loader: 'file-loader',
+          options: {
+            outputPath: config.fontOutputPath,
+            publicPath: ASSET_PATH
+          }
+        }
+      }
   ]
 },
 // ...
@@ -294,26 +326,27 @@ plugins: [
 ### 具体配置：
 - webpack.base.js(基础配置文件)
 ```js
-const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 // ...
 plugins: [
-  // 自动清理 dist 文件夹
-  new CleanWebpackPlugin(['dist'], {
-    root: path.resolve(__dirname, '..'),
-    verbose: true, //开启在控制台输出信息
-    dry: false,
-  }),
   new VueLoaderPlugin(),
-  new CopyWebpackPlugin([{ // 拷贝favicon等公共文件到dist目录
-    from: path.resolve(__dirname, '../public'),
-    to: path.resolve(__dirname, '../dist'),
-    ignore: ['*.html']
-  }]),
-  ...HTMLPlugins,
+  new CopyWebpackPlugin([
+    {
+      from: path.resolve(__dirname, '../public'),
+      to: path.resolve(__dirname, '../dist'),
+      ignore: ['*.html']
+    },
+    {
+      from: path.resolve(__dirname, '../src/scripts/lib'), // 搬运本地类库资源
+      to: path.resolve(__dirname, '../dist')
+    }
+  ]),
+  ...HTMLPlugins, // 利用 HTMLWebpackPlugin 插件合成最终页面
+  new webpack.DefinePlugin({
+    'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH) // 利用 process.env.ASSET_PATH 保证模板文件中引用正确的静态资源地址
+  })
   
 ]
 
@@ -323,7 +356,15 @@ plugins: [
 ```js
 // 抽取css extract-text-webpack-plugin不再支持webpack4，官方出了mini-css-extract-plugin来处理css的抽取
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require('path');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 plugins: [
+  // 自动清理 dist 文件夹
+  new CleanWebpackPlugin(['dist'], {
+    root: path.resolve(__dirname, '..'),
+    verbose: true, //开启在控制台输出信息
+    dry: false,
+  }),
   new MiniCssExtractPlugin({
     filename: 'css/[name].[chunkhash:8].css'
   })
@@ -332,7 +373,7 @@ plugins: [
 
 ## devServer
 
-日常开发的时候我们需要在本地启动一个静态服务器，以方便开发调试，我们使用 webpack-dev-server  这个 webpack 官方提供的一个工具，基于当前的 webpack 构建配置快速启动一个静态服务。当 mode 为 development 时，会具备 hot reload 的功能，所以不需要再手动引入 webpack.HotModuleReplacementPlugin 插件了。
+日常开发的时候我们需要在本地启动一个静态服务器，以方便开发调试，我们使用 webpack-dev-server  这个官方提供的一个工具，基于当前的 webpack 构建配置快速启动一个静态服务。当 mode 为 development 时，会具备 hot reload 的功能，所以不需要再手动引入 webpack.HotModuleReplacementPlugin 插件了。
 
 一般把 webpack-dev-server 作为开发依赖安装，然后使用 npm scripts 来启动：
 ```shell

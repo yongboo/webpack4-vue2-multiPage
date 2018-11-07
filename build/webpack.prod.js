@@ -12,7 +12,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 const config = require('./config'); // 多页面的配置项
-const ASSET_PATH = '//abc.com/static/'; // 静态资地址
+const ASSET_PATH = '//abc.com/static/'; // 线上静态资地址
 // 合并配置文件
 module.exports = webpackMerge(webpackBase, {
   mode: 'production',
